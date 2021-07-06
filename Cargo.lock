@@ -598,6 +598,7 @@ dependencies = [
  "log4rs",
  "miraie",
  "parking_lot",
+ "rand",
  "regex",
  "serde",
  "serde_yaml",

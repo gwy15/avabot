@@ -3,14 +3,18 @@ use miraie::{
     messages::{MessageBlock, MessageChain},
     prelude::*,
 };
+use rand::prelude::*;
 use regex::Regex;
 use serde::Deserialize;
+
+use crate::config;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct ReplyRule {
     pub r#match: String,
+    #[serde(default)]
     pub mode: MatchMode,
-    pub reply: Vec<ReplyBlock>,
+    pub reply: Reply,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -18,6 +22,19 @@ pub struct ReplyRule {
 pub enum MatchMode {
     Full,
     Regex,
+}
+impl Default for MatchMode {
+    fn default() -> Self {
+        MatchMode::Full
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(untagged)]
+pub enum Reply {
+    #[serde(rename = "random")]
+    Random(String),
+    Message(Vec<ReplyBlock>),
 }
 
 /// 都是路径
@@ -38,16 +55,38 @@ impl ReplyRule {
     }
 
     pub fn reply(&self) -> MessageChain {
-        let blocks = self
-            .reply
-            .iter()
-            .map(|r| match r {
-                ReplyBlock::Text(s) => MessageBlock::text(s),
-                ReplyBlock::Image(path) => MessageBlock::image_path(path),
-                ReplyBlock::Voice(path) => MessageBlock::voice_path(path),
-            })
-            .collect();
-        MessageChain(blocks)
+        match &self.reply {
+            Reply::Random(_) => {
+                let config = config::Config::get();
+                let msg_replies = config
+                    .keyword_reply
+                    .iter()
+                    .filter_map(|r| match &r.reply {
+                        Reply::Message(m) => Some(m),
+                        Reply::Random(_) => None,
+                    })
+                    .collect::<Vec<_>>();
+
+                msg_replies
+                    .choose(&mut thread_rng())
+                    .map(|blocks| Self::reply_blocks_to_chain(blocks))
+                    .unwrap_or_else(|| MessageChain::new().text("还没有配置呢"))
+            }
+            Reply::Message(m) => Self::reply_blocks_to_chain(&m),
+        }
+    }
+
+    fn reply_blocks_to_chain(blocks: &[ReplyBlock]) -> MessageChain {
+        MessageChain(
+            blocks
+                .iter()
+                .map(|r| match r {
+                    ReplyBlock::Text(s) => MessageBlock::text(s),
+                    ReplyBlock::Image(path) => MessageBlock::image_path(path),
+                    ReplyBlock::Voice(path) => MessageBlock::voice_path(path),
+                })
+                .collect(),
+        )
     }
 }
 
