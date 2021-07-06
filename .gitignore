@@ -1,0 +1,6 @@
+logs
+resource
+.env
+config.yaml
+
+/target
