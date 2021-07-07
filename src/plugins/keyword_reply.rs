@@ -22,7 +22,7 @@ impl KeywordReplyConfig {
                 .choose(&mut thread_rng())
                 .map(|xml| MessageChain::from_xml(xml));
         }
-        return None;
+        None
     }
 }
 

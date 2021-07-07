@@ -65,6 +65,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
+name = "avabot"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "dotenv",
+ "futures",
+ "lazy_static",
+ "log",
+ "log4rs",
+ "miraie",
+ "parking_lot",
+ "rand",
+ "regex",
+ "serde",
+ "serde_yaml",
+ "tokio",
+]
+
+[[package]]
 name = "base64"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -608,25 +627,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f0d8caf72986c1a598726adc988bb5984792ef84f5ee5aa50209145ee8077038"
 dependencies = [
  "unicode-xid",
-]
-
-[[package]]
-name = "qqbot-impl"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "dotenv",
- "futures",
- "lazy_static",
- "log",
- "log4rs",
- "miraie",
- "parking_lot",
- "rand",
- "regex",
- "serde",
- "serde_yaml",
- "tokio",
 ]
 
 [[package]]
