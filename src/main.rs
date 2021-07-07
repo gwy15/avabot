@@ -14,11 +14,7 @@ pub use config::Config;
 
 use prelude::*;
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    dotenv::dotenv()?;
-    log4rs::init_file("log4rs.yml", Default::default())?;
-
+async fn run() -> Result<()> {
     let config = config::Config::get().clone();
 
     let (bot, con) = miraie::Bot::new(config.addr, config.verify_key, config.qq).await?;
@@ -28,5 +24,29 @@ async fn main() -> Result<()> {
     plugins::keyword_reply::init(bot);
 
     con.run().await?;
+    Ok(())
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    // allow .env not found
+    dotenv::dotenv().ok();
+    log4rs::init_file("log4rs.yml", Default::default()).context("log4rs 启动失败")?;
+
+    // try boot
+    let mut counter = 0;
+    loop {
+        counter += 1;
+        if let Err(e) = run().await {
+            warn!("启动失败：{:?}", e);
+            info!("等待 {} s.", counter);
+            sleep(Duration::from_secs(counter)).await;
+        }
+        if counter > 10 {
+            error!("尝试重启次数过多，停止");
+            break;
+        }
+    }
+
     Ok(())
 }
