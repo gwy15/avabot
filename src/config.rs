@@ -4,8 +4,6 @@ use parking_lot::RwLock;
 use serde::Deserialize;
 use std::{collections::HashSet, net::SocketAddr};
 
-use crate::keyword_reply::ReplyRule;
-
 lazy_static::lazy_static! {
     static ref CONFIG: RwLock<Config> = RwLock::new(Config::new().expect("Failed to parse config at init."));
 }
@@ -18,7 +16,7 @@ pub struct Config {
 
     pub admins: HashSet<QQ>,
 
-    pub keyword_reply: Vec<ReplyRule>,
+    pub keyword_reply: crate::plugins::keyword_reply::KeywordReplyConfig,
 }
 
 impl Config {
