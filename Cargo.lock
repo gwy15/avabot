@@ -481,9 +481,9 @@ dependencies = [
 
 [[package]]
 name = "miraie"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4e9c4674123366d08395900fb53979f7b1d2f5b11501ccd6aeba9a67aeec76c"
+checksum = "d37c467a5521b146d1ed52be1f4acca606671bc84dd7a135e726100f71713b18"
 dependencies = [
  "anyhow",
  "async-stream",
