@@ -5,6 +5,11 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["native-tls"]
+native-tls = ["miraie/native-tls", "reqwest/native-tls"]
+rustls = ["miraie/rustls", "reqwest/rustls-tls"]
+
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 dotenv = "0.15.0"
@@ -16,10 +21,15 @@ parking_lot = "0.11.1"
 lazy_static = "1.4.0"
 regex = "1.5.4"
 rand = "0.8.4"
+chrono = { version = "0.4.19", features = ["serde"] }
 
 serde = "1.0.126"
 serde_yaml = "0.8.17"
 
-miraie = "*"
-reqwest = { version = "0.11.4", features = ["json"] }
-chrono = { version = "0.4.19", features = ["serde"] }
+# 在 features 中启用
+miraie = { version = "*", default-features = false, features = [] }
+
+[dependencies.reqwest]
+version = "0.11.4"
+default-features = false
+features = ["json", "gzip", "deflate", "brotli"]
