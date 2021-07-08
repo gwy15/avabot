@@ -54,7 +54,7 @@ async fn on_message(group_message: GroupMessage, bot: Bot) -> Result<()> {
 struct Response {
     code: i32,
     message: String,
-    data: ResponseData,
+    data: Option<ResponseData>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -108,12 +108,16 @@ async fn get_asoul_cnki_from_str(s: &str) -> Result<String> {
         .await?
         .json()
         .await?;
-    if resp.code != 0 {
+    if resp.code != 0 || resp.data.is_none() {
         error!("resp.code = {}, message = {}", resp.code, resp.message);
-        bail!("枝网查重返回错误：{}", resp.message);
+        if resp.message.contains("Illegal Capacity") {
+            return Ok(String::from("小作文太短了捏~"));
+        } else {
+            bail!("枝网查重返回错误：{}", resp.message);
+        }
     }
 
-    let data = resp.data;
+    let data = resp.data.unwrap();
     let mut res = format!("查重结果：相似度 {:.2}%", data.similarity * 100.);
     if !data.related.is_empty() {
         let (sim, raw, url) = &data.related[0];
