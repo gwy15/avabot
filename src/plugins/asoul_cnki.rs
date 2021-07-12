@@ -21,7 +21,7 @@ async fn on_message(group_message: GroupMessage, bot: Bot) -> Result<()> {
         .collect::<Vec<_>>()
         .join("");
 
-    if cmd_msg != "枝网查重" {
+    if cmd_msg.trim() != "枝网查重" {
         return Ok(());
     }
 
