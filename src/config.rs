@@ -33,6 +33,7 @@ impl Config {
 
     pub fn refresh() -> Result<()> {
         let this = Self::new()?;
+        dotenv::dotenv().ok();
         *CONFIG.write() = this;
         Ok(())
     }
