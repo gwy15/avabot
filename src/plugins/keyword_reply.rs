@@ -30,13 +30,11 @@ pub fn init(bot: Bot) {
     bot.handler(on_group_msg);
 }
 
-/// 关键字回复
+/// 关键字回复，只在群聊中使用
 async fn on_group_msg(group_msg: GroupMessage, bot: Bot) -> Result<()> {
     let message = group_msg.message.to_string();
-    let reply = {
-        let config = &crate::config::Config::get().keyword_reply;
-        config.reply(&message)
-    };
+    let reply = crate::config::Config::get().keyword_reply.reply(&message);
+
     if let Some(reply) = reply {
         group_msg.reply(reply, &bot).await?;
         info!("关键词回复成功");

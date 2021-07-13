@@ -2,7 +2,7 @@ use anyhow::Result;
 use miraie::bot::QQ;
 use parking_lot::RwLock;
 use serde::Deserialize;
-use std::{collections::HashSet,};
+use std::collections::HashSet;
 
 lazy_static::lazy_static! {
     static ref CONFIG: RwLock<Config> = RwLock::new(Config::new().expect("Failed to parse config at init."));
