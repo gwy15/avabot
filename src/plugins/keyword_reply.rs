@@ -8,8 +8,14 @@ use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct KeywordReplyConfig {
+    #[serde(default)]
     pub full_match: HashMap<String, String>,
+
+    #[serde(default)]
     pub random: HashMap<String, Vec<String>>,
+
+    #[serde(default)]
+    pub contain: HashMap<String, String>,
 }
 
 impl KeywordReplyConfig {
@@ -21,6 +27,11 @@ impl KeywordReplyConfig {
             return options
                 .choose(&mut thread_rng())
                 .map(|xml| MessageChain::from_xml(xml));
+        }
+        for (k, xml) in self.contain.iter() {
+            if msg.contains(k) {
+                return Some(MessageChain::from_xml(xml));
+            }
         }
         None
     }
