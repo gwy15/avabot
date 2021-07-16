@@ -34,7 +34,7 @@ async fn run() -> Result<()> {
 async fn main() -> Result<()> {
     // allow .env not found
     dotenv::dotenv().ok();
-    log4rs::init_file("log4rs.yml", Default::default()).context("log4rs 启动失败")?;
+    log4rs::init_file("log4rs.yml", Default::default()).context("log4rs 初始化失败")?;
 
     // try boot
     let mut counter = 0;
