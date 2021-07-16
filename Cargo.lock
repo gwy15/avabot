@@ -849,8 +849,8 @@ dependencies = [
 
 [[package]]
 name = "miraie"
-version = "0.1.10"
-source = "git+https://github.com/gwy15/miraie#d44ac28985f9b63372acc63ce73737018d10271f"
+version = "0.1.11"
+source = "git+https://github.com/gwy15/miraie#3f848b115d66c2c1fe535a003d70f668dbc69197"
 dependencies = [
  "anyhow",
  "async-stream",
