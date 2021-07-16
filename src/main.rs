@@ -23,7 +23,8 @@ async fn run() -> Result<()> {
 
     plugins::core::init(bot.clone());
     plugins::asoul_cnki::init(bot.clone());
-    plugins::keyword_reply::init(bot);
+    plugins::keyword_reply::init(bot.clone());
+    plugins::bilibili_cover::init(bot.clone());
 
     con.run().await?;
     Ok(())
