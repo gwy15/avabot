@@ -21,11 +21,17 @@ async fn on_message<T: Conversation>(msg: T, bot: Bot) -> Result<()> {
         static ref BV_REGEX: Regex = Regex::new(r"BV[\dA-Za-z]+").unwrap();
     }
 
+    info!("封面命令触发");
     let client = Lazy::<reqwest::Client>::new(|| biliapi::connection::new_client().unwrap());
 
     for m in BV_REGEX.find_iter(&s) {
         let bv = m.as_str();
+        info!("寻找视频 {} 封面", bv);
         let video_info = biliapi::requests::VideoInfo::request(&client, bv.to_string()).await?;
+        info!(
+            "视频 {} ({}) 封面为 {}",
+            bv, video_info.title, video_info.cover_url
+        );
         let reply = MessageChain::new().image_url(video_info.cover_url);
         msg.reply(reply, &bot).await?;
     }
