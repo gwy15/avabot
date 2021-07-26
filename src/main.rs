@@ -40,14 +40,19 @@ async fn main() -> Result<()> {
     let mut counter = 0;
     loop {
         counter += 1;
-        if let Err(e) = run().await {
-            warn!("启动失败：{:?}", e);
-            info!("等待 {} s.", counter);
-            sleep(Duration::from_secs(counter)).await;
-        }
-        if counter > 10 {
-            error!("尝试重启次数过多，停止");
-            break;
+        match run().await {
+            Err(e) => {
+                if counter > 10 {
+                    error!("尝试重启次数过多，停止");
+                    break;
+                }
+                warn!("启动失败：{:?}", e);
+                info!("等待 {} s.", counter);
+                sleep(Duration::from_secs(counter)).await;
+            }
+            Ok(_) => {
+                break;
+            }
         }
     }
 

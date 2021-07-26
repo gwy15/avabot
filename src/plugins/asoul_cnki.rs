@@ -66,19 +66,28 @@ struct ResponseData {
     #[serde(with = "chrono::serde::ts_seconds")]
     end_time: DateTime<Utc>,
     /// 相似率，原文，原文链接
-    related: Vec<(f64, Raw, String)>,
+    related: Vec<Related>,
 }
 
 #[derive(Debug, Deserialize)]
-struct Raw {
+struct Related {
+    #[serde(rename = "rate")]
+    similarity: f64,
+
+    reply: Reply,
+
+    reply_url: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct Reply {
     #[serde(rename = "m_name")]
     author: String,
 
-    #[serde(with = "chrono::serde::ts_seconds")]
-    #[serde(rename = "ctime")]
+    #[serde(rename = "ctime", with = "chrono::serde::ts_seconds")]
     create_time: DateTime<Utc>,
 
-    dynamic_id: i64,
+    // dynamic_id: i64,
     content: String,
 }
 
@@ -97,7 +106,7 @@ async fn get_asoul_cnki(chain: MessageChain) -> Result<String> {
 }
 
 async fn get_asoul_cnki_from_str(s: &str) -> Result<String> {
-    let resp: Response = reqwest::Client::new()
+    let resp = reqwest::Client::new()
         .post("https://asoulcnki.asia/v1/api/check")
         .json(&{
             let mut m = HashMap::new();
@@ -105,9 +114,10 @@ async fn get_asoul_cnki_from_str(s: &str) -> Result<String> {
             m
         })
         .send()
-        .await?
-        .json()
         .await?;
+    let text = resp.text().await?;
+    debug!("查重返回结果 = {}", text);
+    let resp: Response = serde_json::from_str(&text)?;
     if resp.code != 0 || resp.data.is_none() {
         error!("resp.code = {}, message = {}", resp.code, resp.message);
         if resp.message.contains("Illegal Capacity") {
@@ -120,13 +130,13 @@ async fn get_asoul_cnki_from_str(s: &str) -> Result<String> {
     let data = resp.data.unwrap();
     let mut res = format!("查重结果：相似度 {:.2}%", data.similarity * 100.);
     if !data.related.is_empty() {
-        let (sim, raw, url) = &data.related[0];
+        let first = &data.related[0];
         res.push_str(&format!(
-            "\n相似小作文：相似度 {:.2}%\n作者{}\n链接：{}\n{}",
-            sim * 100.0,
-            raw.author,
-            url,
-            raw.content,
+            "\n相似小作文：相似度 {:.2}%\n作者：{}\n链接：{}\n{}",
+            first.similarity * 100.0,
+            first.reply.author,
+            first.reply_url,
+            first.reply.content,
         ));
     }
 
