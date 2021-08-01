@@ -63,16 +63,17 @@ impl KeywordReplyConfig {
 }
 
 pub fn init(bot: Bot) {
-    bot.handler(on_group_msg);
+    bot.handler(on_msg::<GroupMessage>)
+        .handler(on_msg::<FriendMessage>);
 }
 
-/// 关键字回复，只在群聊中使用
-async fn on_group_msg(group_msg: GroupMessage, bot: Bot) -> Result<()> {
-    let message = group_msg.message.to_string();
+/// 关键字回复
+async fn on_msg<T: Conversation>(msg: T, bot: Bot) -> Result<()> {
+    let message = msg.as_message().to_string();
     let reply = crate::config::Config::get().keyword_reply.reply(&message);
 
     if let Some(reply) = reply {
-        group_msg.reply(reply, &bot).await?;
+        msg.reply(reply, &bot).await?;
         info!("关键词回复成功");
     }
 
