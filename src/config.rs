@@ -17,6 +17,8 @@ pub struct Config {
     pub admins: HashSet<QQ>,
 
     pub keyword_reply: crate::plugins::keyword_reply::KeywordReplyConfig,
+
+    pub asoul_weekly: crate::plugins::asoul_weekly::Config,
 }
 
 impl Config {

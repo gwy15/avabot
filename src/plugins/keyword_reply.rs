@@ -73,7 +73,8 @@ async fn on_msg<T: Conversation>(msg: T, bot: Bot) -> Result<()> {
     let reply = crate::config::Config::get().keyword_reply.reply(&message);
 
     if let Some(reply) = reply {
-        msg.reply(reply, &bot).await?;
+        debug!("回复 {:?}", reply);
+        msg.reply_unquote(reply, &bot).await?;
         info!("关键词回复成功");
     }
 
