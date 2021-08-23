@@ -28,7 +28,7 @@ async fn generate_summary(msg: GroupMessage, bot: Bot, base_url: String) -> Resu
     };
     let t = t.to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
     info!("t = {}", t);
-    let url = format!("{}?t={}", base_url, t);
+    let url = format!("{}/summary?t={}", base_url, t);
 
     info!("归档链接: {}", url);
     let summary: BTreeMap<String, Vec<String>> = reqwest::get(url).await?.json().await?;
