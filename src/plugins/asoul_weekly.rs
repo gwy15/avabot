@@ -61,21 +61,27 @@ async fn change_category(msg: GroupMessage, base_url: String) -> Result<()> {
             let bv = cap.get(1).ok_or_else(|| anyhow!("缺少"))?.as_str();
             let cat = cap.get(2).ok_or_else(|| anyhow!("缺少分类"))?.as_str();
             let url = format!("{}/items/{}/category", base_url, bv);
-            let r: Value = reqwest::Client::new()
-                .patch(url)
-                .json(&json!({ "category": cat }))
-                .send()
-                .await?
-                .json()
-                .await?;
-            if let Some(r) = r.get("error").cloned() {
+            let client = reqwest::Client::new();
+            // 如果分类是“删除”或者null就删掉
+            let req = match cat.to_lowercase().as_str() {
+                "删除" | "null" => client.delete(url).send().await,
+                cat => {
+                    client
+                        .patch(url)
+                        .json(&json!({ "category": cat }))
+                        .send()
+                        .await
+                }
+            };
+            let rsp: Value = req?.json().await?;
+            if let Some(r) = rsp.get("error").cloned() {
                 if let Some(s) = r.as_str() {
                     bail!(s.to_string())
                 }
             }
         }
         None => {
-            bail!("格式错误，格式需要是：\n修改分类 BVxxxxxxxx 翻唱")
+            bail!("格式错误，格式需要是：\n修改分类 BVxxxxxxxx 翻唱/删除")
         }
     }
     Ok(())
