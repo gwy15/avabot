@@ -53,7 +53,7 @@ async fn generate_summary(msg: GroupMessage, bot: Bot, base_url: String) -> Resu
 
 async fn change_category(msg: GroupMessage, base_url: String) -> Result<()> {
     lazy_static::lazy_static! {
-        static ref PATTERN: Regex = Regex::new(r"^修改分类 (BV.+) (.+)$").unwrap();
+        static ref PATTERN: Regex = Regex::new(r"^修改分类 (.+) (.+)$").unwrap();
     }
     let msg_s = msg.as_message().to_string();
     match PATTERN.captures(&msg_s) {
