@@ -51,6 +51,32 @@ async fn generate_summary(msg: GroupMessage, bot: Bot, base_url: String) -> Resu
     Ok(())
 }
 
+async fn generate_kpi(msg: GroupMessage, bot: Bot, base_url: String) -> Result<()> {
+    let t = match msg.as_message().to_string().to_lowercase().as_str() {
+        "今日kpi" | "今天kpi" | "kpi" => Utc::now(),
+        "昨天kpi" | "昨日kpi" => Utc::now() - Duration::days(1),
+        "前天kpi" => Utc::now() - Duration::days(2),
+        _ => return Ok(()),
+    };
+    let t = t.to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+    info!("t = {}", t);
+    let url = format!("{}/kpi?t={}", base_url, t);
+
+    info!("kpi链接: {}", url);
+    #[derive(Debug, Deserialize)]
+    struct Row {
+        name: String,
+        times: u32,
+    }
+    let kpi: Vec<Row> = reqwest::get(url).await?.json().await?;
+    let mut message = String::new();
+    for row in kpi {
+        writeln!(message, "【{}】筛选了 【{}】 个", row.name, row.times)?;
+    }
+    msg.reply_unquote(message, &bot).await?;
+    Ok(())
+}
+
 async fn change_category(msg: GroupMessage, base_url: String) -> Result<()> {
     lazy_static::lazy_static! {
         static ref PATTERN: Regex = Regex::new(r"^修改分类 (.+) (.+)$").unwrap();
@@ -103,6 +129,8 @@ async fn on_message(msg: GroupMessage, bot: Bot) -> Result<()> {
     let msg_s = msg.as_message().to_string();
     if msg_s.contains("归档") {
         generate_summary(msg, bot, base_url).await?;
+    } else if msg_s.to_lowercase().contains("kpi") {
+        generate_kpi(msg, bot, base_url).await?;
     } else if msg_s.starts_with("修改分类") {
         match change_category(msg.clone(), base_url).await {
             Ok(()) => {
