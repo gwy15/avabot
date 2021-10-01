@@ -92,7 +92,7 @@ async fn change_category(msg: GroupMessage, base_url: String) -> Result<()> {
             // 如果分类是“删除”或者null就删掉
             let req = match category.to_lowercase().as_str() {
                 "删除" | "null" => client.delete(url).send().await,
-                cat if cat.starts_with("+") => {
+                cat if cat.starts_with('+') => {
                     let cat = cat.trim_start_matches('+');
                     client
                         .post(url)
