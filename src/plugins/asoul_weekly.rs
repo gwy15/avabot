@@ -79,18 +79,27 @@ async fn generate_kpi(msg: GroupMessage, bot: Bot, base_url: String) -> Result<(
 
 async fn change_category(msg: GroupMessage, base_url: String) -> Result<()> {
     lazy_static::lazy_static! {
-        static ref PATTERN: Regex = Regex::new(r"^修改分类 (.+) (.+)$").unwrap();
+        static ref PATTERN: Regex = Regex::new(r"^修改分类\s+(.+)\s+(.+)$").unwrap();
     }
     let msg_s = msg.as_message().to_string();
     match PATTERN.captures(&msg_s) {
         Some(cap) => {
-            let bv = cap.get(1).ok_or_else(|| anyhow!("缺少"))?.as_str();
-            let cat = cap.get(2).ok_or_else(|| anyhow!("缺少分类"))?.as_str();
-            let url = format!("{}/items/{}/category", base_url, bv);
+            let id = cap.get(1).ok_or_else(|| anyhow!("缺少"))?.as_str();
+            let category = cap.get(2).ok_or_else(|| anyhow!("缺少分类"))?.as_str();
+
+            let url = format!("{}/items/{}/category", base_url, id);
             let client = reqwest::Client::new();
             // 如果分类是“删除”或者null就删掉
-            let req = match cat.to_lowercase().as_str() {
+            let req = match category.to_lowercase().as_str() {
                 "删除" | "null" => client.delete(url).send().await,
+                cat if cat.starts_with("+") => {
+                    let cat = cat.trim_start_matches('+');
+                    client
+                        .post(url)
+                        .json(&json!({ "category": cat }))
+                        .send()
+                        .await
+                }
                 cat => {
                     client
                         .patch(url)
