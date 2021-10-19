@@ -31,6 +31,10 @@ serde_json = "1.0.64"
 # api
 biliapi = { version = "*", default-features = false }
 
+
+[dev-dependencies]
+pretty_env_logger = "0.4.0"
+
 [dependencies.miraie]
 # 0.1.* 阶段随时可能升级且发生 breaking change
 version = "*"
