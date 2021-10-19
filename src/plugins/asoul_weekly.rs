@@ -188,6 +188,12 @@ async fn change_category_shortcut(base_url: String, url: &str) -> Result<String>
         .await?;
     if response.status() != reqwest::StatusCode::OK {
         let json: serde_json::Value = response.json().await?;
+        info!("请求返回 json：{:?}", json);
+        if let Some(r) = json.get("error").cloned() {
+            if let Some(s) = r.as_str() {
+                bail!(s.to_string())
+            }
+        }
         bail!("请求错误：{:?}", json);
     }
 
