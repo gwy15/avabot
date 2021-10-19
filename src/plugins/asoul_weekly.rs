@@ -181,11 +181,16 @@ async fn change_category_shortcut(base_url: String, url: &str) -> Result<String>
     let url = format!("{}/items/{}/category", base_url, id);
 
     let client = reqwest::Client::new();
-    client
+    let response = client
         .post(url)
         .json(&json!({ "category": "动态" }))
         .send()
         .await?;
+    if response.status() != reqwest::StatusCode::OK {
+        let json: serde_json::Value = response.json().await?;
+        bail!("请求错误：{:?}", json);
+    }
+
     Ok(id)
 }
 
