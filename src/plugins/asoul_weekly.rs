@@ -161,12 +161,13 @@ async fn get_redirected_id(url: &str) -> Result<String> {
     bail!("未在重定向后的链接内解析出动态 id");
 }
 
+/// 判断是否是简写增加动态并返回提取的链接
 fn extract_shortcut_change_category_url(s: &str) -> Option<&str> {
     lazy_static! {
         static ref URL_REGEXP: Regex =
             Regex::new(r"https://((b23\.tv|.+\.bilibili.com)/\w+)").unwrap();
     }
-    if !s.contains("+") {
+    if !s.contains('+') {
         return None;
     }
     if let Some(cap) = URL_REGEXP.captures(s) {
@@ -176,7 +177,7 @@ fn extract_shortcut_change_category_url(s: &str) -> Option<&str> {
 }
 
 async fn change_category_shortcut(base_url: String, url: &str) -> Result<String> {
-    let id = get_redirected_id(&url).await?;
+    let id = get_redirected_id(url).await?;
     let url = format!("{}/items/{}/category", base_url, id);
 
     let client = reqwest::Client::new();
