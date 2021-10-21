@@ -169,7 +169,7 @@ fn extract_shortcut_change_category_url(s: &str) -> Option<&str> {
         static ref URL_REGEXP: Regex =
             Regex::new(r"https://((b23\.tv|.+\.bilibili.com)/\w+)").unwrap();
     }
-    if !(s.contains('+') || s.contains('-')) {
+    if !(s.ends_with('+') || s.ends_with('-')) {
         return None;
     }
     if let Some(cap) = URL_REGEXP.captures(s) {
@@ -178,15 +178,19 @@ fn extract_shortcut_change_category_url(s: &str) -> Option<&str> {
     None
 }
 
-async fn change_category_shortcut(msg_s: &str, base_url: String, url: &str) -> Result<String> {
+async fn change_category_shortcut(
+    msg_s: &str,
+    base_url: String,
+    url: &str,
+) -> Result<(bool, String)> {
     let id = get_redirected_id(url).await?;
     let url = format!("{}/items/{}/category", base_url, id);
 
     let client = reqwest::Client::new();
-    let req = if msg_s.contains('+') {
-        client.post(url).json(&json!({ "category": "动态" }))
+    let (add, req) = if msg_s.ends_with('+') {
+        (true, client.post(url).json(&json!({ "category": "动态" })))
     } else {
-        client.delete(url)
+        (false, client.delete(url))
     };
     let response = req.send().await?;
     if response.status() != reqwest::StatusCode::OK {
@@ -200,7 +204,7 @@ async fn change_category_shortcut(msg_s: &str, base_url: String, url: &str) -> R
         bail!("请求错误：{:?}", json);
     }
 
-    Ok(id)
+    Ok((add, id))
 }
 
 async fn on_message(msg: GroupMessage, bot: Bot) -> Result<()> {
@@ -233,8 +237,11 @@ async fn on_message(msg: GroupMessage, bot: Bot) -> Result<()> {
     } else if let Some(url) = extract_shortcut_change_category_url(&msg_s) {
         info!("简写增加，url = {}", url);
         match change_category_shortcut(&msg_s, base_url, url).await {
-            Ok(id) => {
+            Ok((true, id)) => {
                 msg.reply(format!("增加动态 id={} 成功", id), &bot).await?;
+            }
+            Ok((false, id)) => {
+                msg.reply(format!("删除动态 id={} 成功", id), &bot).await?;
             }
             Err(e) => {
                 msg.reply(e.to_string(), &bot).await?;
