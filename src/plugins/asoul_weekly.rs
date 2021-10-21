@@ -80,7 +80,7 @@ async fn generate_kpi(msg: GroupMessage, bot: Bot, base_url: String) -> Result<(
 
 async fn change_category(msg: GroupMessage, base_url: String) -> Result<()> {
     lazy_static::lazy_static! {
-        static ref PATTERN: Regex = Regex::new(r"^修改分类\s+(.+)\s+(.+)$").unwrap();
+        static ref PATTERN: Regex = Regex::new(r"^修改分类\s+(\w+)\s+(\w+)$").unwrap();
     }
     let msg_s = msg.as_message().to_string();
     match PATTERN.captures(&msg_s) {
@@ -92,7 +92,9 @@ async fn change_category(msg: GroupMessage, base_url: String) -> Result<()> {
             let client = reqwest::Client::new();
             // 如果分类是“删除”或者null就删掉
             let req = match category.to_lowercase().as_str() {
-                cat if cat.contains("删除") => client.delete(url).send().await,
+                cat if cat.contains("删除") || cat.contains('-') => {
+                    client.delete(url).send().await
+                }
                 cat if cat.starts_with('+') => {
                     let cat = cat.trim_start_matches('+');
                     client
@@ -167,7 +169,7 @@ fn extract_shortcut_change_category_url(s: &str) -> Option<&str> {
         static ref URL_REGEXP: Regex =
             Regex::new(r"https://((b23\.tv|.+\.bilibili.com)/\w+)").unwrap();
     }
-    if !s.contains('+') {
+    if !(s.contains('+') || s.contains('-')) {
         return None;
     }
     if let Some(cap) = URL_REGEXP.captures(s) {
@@ -176,16 +178,17 @@ fn extract_shortcut_change_category_url(s: &str) -> Option<&str> {
     None
 }
 
-async fn change_category_shortcut(base_url: String, url: &str) -> Result<String> {
+async fn change_category_shortcut(msg_s: &str, base_url: String, url: &str) -> Result<String> {
     let id = get_redirected_id(url).await?;
     let url = format!("{}/items/{}/category", base_url, id);
 
     let client = reqwest::Client::new();
-    let response = client
-        .post(url)
-        .json(&json!({ "category": "动态" }))
-        .send()
-        .await?;
+    let req = if msg_s.contains('+') {
+        client.post(url).json(&json!({ "category": "动态" }))
+    } else {
+        client.delete(url)
+    };
+    let response = req.send().await?;
     if response.status() != reqwest::StatusCode::OK {
         let json: serde_json::Value = response.json().await?;
         info!("请求返回 json：{:?}", json);
@@ -229,7 +232,7 @@ async fn on_message(msg: GroupMessage, bot: Bot) -> Result<()> {
         }
     } else if let Some(url) = extract_shortcut_change_category_url(&msg_s) {
         info!("简写增加，url = {}", url);
-        match change_category_shortcut(base_url, url).await {
+        match change_category_shortcut(&msg_s, base_url, url).await {
             Ok(id) => {
                 msg.reply(format!("增加动态 id={} 成功", id), &bot).await?;
             }
