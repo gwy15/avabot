@@ -256,6 +256,10 @@ fn test_is_shortcut_change_category() {
         Some("https://b23.tv/oNcAbk")
     );
     assert_eq!(
+        extract_shortcut_change_category_url("https://b23.tv/oNcAbk    -"),
+        Some("https://b23.tv/oNcAbk")
+    );
+    assert_eq!(
         extract_shortcut_change_category_url("+ https://b23.tv/oNcAbk +"),
         Some("https://b23.tv/oNcAbk")
     );
