@@ -80,7 +80,7 @@ async fn generate_kpi(msg: GroupMessage, bot: Bot, base_url: String) -> Result<(
 
 async fn change_category(msg: GroupMessage, base_url: String) -> Result<()> {
     lazy_static::lazy_static! {
-        static ref PATTERN: Regex = Regex::new(r"^修改分类\s+(\w+)\s+(\w+)$").unwrap();
+        static ref PATTERN: Regex = Regex::new(r"^修改分类\s+(\w+)\s+([^\s]+)$").unwrap();
     }
     let msg_s = msg.as_message().to_string();
     match PATTERN.captures(&msg_s) {
