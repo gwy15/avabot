@@ -6,7 +6,7 @@ use anyhow::Result;
 use futures::StreamExt;
 use miraie::prelude::*;
 
-static KEY: &'static str = "A-SOUL_SCHEDULE_URL";
+static KEY: &str = "A-SOUL_SCHEDULE_URL";
 
 pub fn init(bot: Bot) {
     bot.handler(on_msg::<GroupMessage>)
@@ -56,7 +56,7 @@ async fn on_msg<T: Conversation>(msg: T, bot: Bot) -> Result<()> {
                     base64,
                 } => {
                     info!("image: {}, {}, {:?}", image_id, url, base64);
-                    set_url(&db_path, &url)?;
+                    set_url(&db_path, url)?;
                     let reply = MessageChain::new().text("日程表已经设置为").image_url(url);
                     next_msg.reply(reply, &bot).await?;
                 }
