@@ -20,6 +20,7 @@ pub struct Config {
     allow_groups: HashSet<QQ>,
 }
 
+/// 归档，会在内部回复消息
 async fn generate_summary(msg: GroupMessage, bot: Bot, base_url: String) -> Result<()> {
     let t = match msg.as_message().to_string().as_str() {
         "今日归档" | "今天归档" | "归档" => Utc::now(),
@@ -52,6 +53,7 @@ async fn generate_summary(msg: GroupMessage, bot: Bot, base_url: String) -> Resu
     Ok(())
 }
 
+/// kpi，内部回复消息
 async fn generate_kpi(msg: GroupMessage, bot: Bot, base_url: String) -> Result<()> {
     let t = match msg.as_message().to_string().to_lowercase().as_str() {
         "今日kpi" | "今天kpi" | "kpi" => Utc::now(),
@@ -78,6 +80,7 @@ async fn generate_kpi(msg: GroupMessage, bot: Bot, base_url: String) -> Result<(
     Ok(())
 }
 
+/// 修改分类
 async fn change_category(msg: GroupMessage, base_url: String) -> Result<()> {
     lazy_static::lazy_static! {
         static ref PATTERN: Regex = Regex::new(r"^修改分类\s+(\w+)\s+([^\s]+)$").unwrap();
@@ -178,6 +181,7 @@ fn extract_shortcut_change_category_url(s: &str) -> Option<&str> {
     None
 }
 
+/// 缩写的实现，返回（是否是增加，回复的消息）
 async fn change_category_shortcut(
     msg_s: &str,
     base_url: String,
