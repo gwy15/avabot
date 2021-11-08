@@ -14,6 +14,9 @@ pub struct Config {
     pub verify_key: String,
     pub addr: String,
 
+    /// path for sled db
+    pub db_path: String,
+
     pub admins: HashSet<QQ>,
 
     pub keyword_reply: crate::plugins::keyword_reply::KeywordReplyConfig,
