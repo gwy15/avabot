@@ -39,9 +39,7 @@ pretty_env_logger = "0.4.0"
 tempfile = "3.2.0"
 
 [dependencies.miraie]
-# 0.1.* 阶段随时可能升级且发生 breaking change
-version = "*"
-git = "https://github.com/gwy15/miraie"
+version = "0.2.0-alpha.1"
 default-features = false
 features = []
 

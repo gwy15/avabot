@@ -9,8 +9,10 @@ use miraie::prelude::*;
 static KEY: &str = "A-SOUL_SCHEDULE_URL";
 
 pub fn init(bot: Bot) {
-    bot.handler(on_msg::<GroupMessage>)
-        .handler(on_msg::<FriendMessage>);
+    bot.command("日程表", on_日程表::<GroupMessage>)
+        .command("日程表", on_日程表::<FriendMessage>)
+        .command("新日程表", on_新日程表::<GroupMessage>)
+        .command("新日程表", on_新日程表::<FriendMessage>);
 }
 
 fn get_url(db_path: &str) -> Result<Option<String>> {
@@ -26,44 +28,44 @@ fn set_url(db_path: &str, url: &str) -> Result<()> {
     Ok(())
 }
 
-async fn on_msg<T: Conversation>(msg: T, bot: Bot) -> Result<()> {
+async fn on_日程表<T: Conversation>(msg: T, bot: Bot) -> Result<()> {
     let db_path = { Config::get().db_path.clone() };
-    match msg.as_message().to_string().as_str() {
-        "日程表" => match get_url(&db_path)? {
-            Some(url) => {
-                msg.reply(MessageBlock::image_url(url), &bot).await?;
-            }
-            None => {
-                msg.reply("日程表图片还未设置，使用【新日程表】指令设置", &bot)
-                    .await?;
-            }
-        },
-        "新日程表" => {
-            msg.reply("在群里发送图片以设置新的日程表", &bot).await?;
-            let next_msg = match msg.followed_sender_messages(&bot).next().await {
-                Some(n) => n,
-                None => return Ok(()),
-            };
-            let next_block = match next_msg.as_message().0.last() {
-                Some(i) => i,
-                None => return Ok(()),
-            };
-            info!("新日程表: {:?}", next_block);
-            match next_block {
-                MessageBlock::Image {
-                    image_id,
-                    url,
-                    base64,
-                } => {
-                    info!("image: {}, {}, {:?}", image_id, url, base64);
-                    set_url(&db_path, url)?;
-                    let reply = MessageChain::new().text("日程表已经设置为").image_url(url);
-                    next_msg.reply(reply, &bot).await?;
-                }
-                _ => return Ok(()),
-            }
+    match get_url(&db_path)? {
+        Some(url) => {
+            msg.reply(MessageBlock::image_url(url), &bot).await?;
         }
-        _ => {}
+        None => {
+            msg.reply("日程表图片还未设置，使用【新日程表】指令设置", &bot)
+                .await?;
+        }
+    }
+    Ok(())
+}
+
+async fn on_新日程表<T: Conversation>(msg: T, bot: Bot) -> Result<()> {
+    let db_path = { Config::get().db_path.clone() };
+    msg.reply("在群里发送图片以设置新的日程表", &bot).await?;
+    let next_msg = match msg.followed_sender_messages(&bot).next().await {
+        Some(n) => n,
+        None => return Ok(()),
+    };
+    let next_block = match next_msg.as_message().0.last() {
+        Some(i) => i,
+        None => return Ok(()),
+    };
+    info!("新日程表: {:?}", next_block);
+    match next_block {
+        MessageBlock::Image {
+            image_id,
+            url,
+            base64,
+        } => {
+            info!("image: {}, {}, {:?}", image_id, url, base64);
+            set_url(&db_path, url)?;
+            let reply = MessageChain::new().text("日程表已经设置为").image_url(url);
+            next_msg.reply(reply, &bot).await?;
+        }
+        _ => return Ok(()),
     }
     Ok(())
 }

@@ -6,16 +6,11 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 
 pub fn init(bot: Bot) {
-    bot.handler(on_message::<FriendMessage>)
-        .handler(on_message::<GroupMessage>);
+    bot.command("封面", on_message::<FriendMessage>)
+        .command("封面", on_message::<GroupMessage>);
 }
 
 async fn on_message<T: Conversation>(msg: T, bot: Bot) -> Result<()> {
-    let s = msg.as_message().to_string();
-    if !s.starts_with("封面") {
-        return Ok(());
-    }
-
     // 匹配全部 bv 号
     lazy_static! {
         static ref BV_REGEX: Regex = Regex::new(r"BV[\dA-Za-z]+").unwrap();
@@ -23,6 +18,7 @@ async fn on_message<T: Conversation>(msg: T, bot: Bot) -> Result<()> {
 
     info!("封面命令触发");
     let client = Lazy::<reqwest::Client>::new(|| biliapi::connection::new_client().unwrap());
+    let s = msg.as_message().to_string();
 
     for m in BV_REGEX.find_iter(&s) {
         let bv = m.as_str();

@@ -3,6 +3,7 @@
         "asoul",
         "avabot",
         "bilibili",
-        "cnki"
+        "cnki",
+        "reqwest"
     ]
 }

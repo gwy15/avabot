@@ -3,8 +3,8 @@
 use crate::prelude::*;
 
 pub fn init(bot: Bot) {
-    bot.handler(ping_pong::<FriendMessage>)
-        .handler(ping_pong::<GroupMessage>)
+    bot.command("ping", ping_pong::<FriendMessage>)
+        .command("ping", ping_pong::<GroupMessage>)
         .handler(reload::<FriendMessage>)
         .handler(reload::<GroupMessage>);
 }
