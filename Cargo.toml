@@ -39,7 +39,7 @@ pretty_env_logger = "0.4.0"
 tempfile = "3.2.0"
 
 [dependencies.miraie]
-version = "0.2.0-alpha.1"
+version = "0.2.0-beta.1"
 default-features = false
 features = []
 
