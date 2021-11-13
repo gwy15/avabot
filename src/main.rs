@@ -16,10 +16,12 @@ pub use config::Config;
 use prelude::*;
 
 async fn run() -> Result<()> {
-    let config = config::Config::get().clone();
+    let config = config::Config::new()?;
 
-    let (bot, con) = miraie::Bot::new(config.addr, config.verify_key, config.qq).await?;
+    let (mut bot, con) = miraie::Bot::new(&config.addr, &config.verify_key, config.qq).await?;
     info!("连接已建立。");
+
+    bot = bot.bot_data(Data::new(config));
 
     plugins::core::init(bot.clone());
     plugins::asoul_cnki::init(bot.clone());

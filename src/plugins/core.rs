@@ -1,12 +1,13 @@
 //! 核心模块
 
 use crate::prelude::*;
+use crate::Config;
 
 pub fn init(bot: Bot) {
     bot.command("ping", ping_pong::<FriendMessage>)
         .command("ping", ping_pong::<GroupMessage>)
-        .handler(reload::<FriendMessage>)
-        .handler(reload::<GroupMessage>);
+        .command("reload", reload::<FriendMessage>)
+        .command("reload", reload::<GroupMessage>);
 }
 
 /// ping-pong!
@@ -24,24 +25,22 @@ async fn ping_pong<T: Conversation>(msg: T, bot: Bot) -> Result<()> {
 }
 
 /// 给管理员加上 reload 信息
-async fn reload<T: Conversation>(msg: T, bot: Bot) -> Result<()> {
-    if !crate::Config::get().is_admin(*msg.sender().as_ref()) {
-        return Ok(());
+async fn reload<T: Conversation>(msg: T, bot: Bot, config: Data<Config>) -> Result<Option<String>> {
+    if !config.is_admin(*msg.sender().as_ref()) {
+        return Ok(None);
     }
 
-    if msg.as_message().to_string().trim() == "reload" {
-        info!("reload config");
-        match crate::Config::refresh() {
-            Ok(_) => {
-                info!("reload 成功");
-                debug!("config = {:?}", crate::Config::get());
-                msg.reply("reload 成功", &bot).await?;
-            }
-            Err(e) => {
-                error!("reload 失败：{:?}", e);
-                msg.reply(format!("reload 失败：{:?}", e), &bot).await?;
-            }
+    info!("reload config");
+    match crate::Config::new() {
+        Ok(new_config) => {
+            bot.bot_data(new_config);
+            info!("reload 成功");
+            debug!("config = {:?}", config);
+            Ok(Some("reload 成功".to_string()))
+        }
+        Err(e) => {
+            error!("reload 失败：{:?}", e);
+            Ok(Some(format!("reload 失败：{:?}", e)))
         }
     }
-    Ok(())
 }

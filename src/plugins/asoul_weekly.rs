@@ -21,7 +21,7 @@ pub struct Config {
 }
 
 /// 归档，会在内部回复消息
-async fn generate_summary(msg: GroupMessage, bot: Bot, base_url: String) -> Result<()> {
+async fn generate_summary(msg: GroupMessage, bot: Bot, base_url: &str) -> Result<()> {
     let t = match msg.as_message().to_string().as_str() {
         "今日归档" | "今天归档" | "归档" => Utc::now(),
         "昨天归档" | "昨日归档" => Utc::now() - Duration::days(1),
@@ -54,7 +54,7 @@ async fn generate_summary(msg: GroupMessage, bot: Bot, base_url: String) -> Resu
 }
 
 /// kpi，内部回复消息
-async fn generate_kpi(msg: GroupMessage, bot: Bot, base_url: String) -> Result<()> {
+async fn generate_kpi(msg: GroupMessage, bot: Bot, base_url: &str) -> Result<()> {
     let t = match msg.as_message().to_string().to_lowercase().as_str() {
         "今日kpi" | "今天kpi" | "kpi" => Utc::now(),
         "昨天kpi" | "昨日kpi" => Utc::now() - Duration::days(1),
@@ -81,7 +81,7 @@ async fn generate_kpi(msg: GroupMessage, bot: Bot, base_url: String) -> Result<(
 }
 
 /// 修改分类
-async fn change_category(msg: GroupMessage, base_url: String) -> Result<()> {
+async fn change_category(msg: GroupMessage, base_url: &str) -> Result<()> {
     lazy_static::lazy_static! {
         static ref PATTERN: Regex = Regex::new(r"^修改分类\s+(\w+)\s+([^\s]+)$").unwrap();
     }
@@ -184,7 +184,7 @@ fn extract_shortcut_change_category_url(s: &str) -> Option<&str> {
 /// 缩写的实现，返回（是否是增加，回复的消息）
 async fn change_category_shortcut(
     msg_s: &str,
-    base_url: String,
+    base_url: &str,
     url: &str,
 ) -> Result<(bool, String)> {
     let id = get_redirected_id(url).await?;
@@ -211,18 +211,16 @@ async fn change_category_shortcut(
     Ok((add, id))
 }
 
-async fn on_message(msg: GroupMessage, bot: Bot) -> Result<()> {
-    let base_url = {
-        let config = crate::Config::get();
-        if !config
-            .asoul_weekly
-            .allow_groups
-            .contains(&msg.sender.group.id)
-        {
-            return Ok(());
-        }
-        config.asoul_weekly.url.clone()
-    };
+async fn on_message(msg: GroupMessage, config: Data<crate::Config>, bot: Bot) -> Result<()> {
+    if !config
+        .asoul_weekly
+        .allow_groups
+        .contains(&msg.sender.group.id)
+    {
+        return Ok(());
+    }
+
+    let base_url = &config.asoul_weekly.url;
 
     let msg_s = msg.as_message().to_string();
     if msg_s.contains("归档") {

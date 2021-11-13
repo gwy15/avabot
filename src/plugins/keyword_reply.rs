@@ -1,7 +1,7 @@
 //! 关键字回复
 use std::collections::HashMap;
 
-use crate::prelude::*;
+use crate::{prelude::*, Config};
 
 use rand::prelude::*;
 use serde::Deserialize;
@@ -68,9 +68,9 @@ pub fn init(bot: Bot) {
 }
 
 /// 关键字回复
-async fn on_msg<T: Conversation>(msg: T, bot: Bot) -> Result<()> {
+async fn on_msg<T: Conversation>(msg: T, bot: Bot, config: Data<Config>) -> Result<()> {
     let message = msg.as_message().to_string();
-    let reply = crate::config::Config::get().keyword_reply.reply(&message);
+    let reply = config.keyword_reply.reply(&message);
 
     if let Some(reply) = reply {
         debug!("回复 {:?}", reply);

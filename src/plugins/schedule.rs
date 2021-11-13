@@ -28,9 +28,8 @@ fn set_url(db_path: &str, url: &str) -> Result<()> {
     Ok(())
 }
 
-async fn on_日程表<T: Conversation>(msg: T, bot: Bot) -> Result<()> {
-    let db_path = { Config::get().db_path.clone() };
-    match get_url(&db_path)? {
+async fn on_日程表<T: Conversation>(msg: T, bot: Bot, config: Data<Config>) -> Result<()> {
+    match get_url(&config.db_path)? {
         Some(url) => {
             msg.reply(MessageBlock::image_url(url), &bot).await?;
         }
@@ -42,8 +41,8 @@ async fn on_日程表<T: Conversation>(msg: T, bot: Bot) -> Result<()> {
     Ok(())
 }
 
-async fn on_新日程表<T: Conversation>(msg: T, bot: Bot) -> Result<()> {
-    let db_path = { Config::get().db_path.clone() };
+async fn on_新日程表<T: Conversation>(msg: T, bot: Bot, config: Data<Config>) -> Result<()> {
+    let db_path = config.as_ref().db_path.clone();
     msg.reply("在群里发送图片以设置新的日程表", &bot).await?;
     let next_msg = match msg.followed_sender_messages(&bot).next().await {
         Some(n) => n,
