@@ -136,7 +136,7 @@ async fn parse_shortcut(msg: &str) -> Result<Option<Command>> {
     };
     //
     let id = utils::get_redirected_id(url).await?;
-    let cmd = if msg.ends_with("+") {
+    let cmd = if msg.ends_with('+') {
         Command::Add {
             id,
             category: "动态".to_string(),
