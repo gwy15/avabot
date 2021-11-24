@@ -94,10 +94,8 @@ async fn change_category(msg: GroupMessage, base_url: &str) -> Result<()> {
             let url = format!("{}/items/{}/category", base_url, id);
             let client = reqwest::Client::new();
             // 如果分类是“删除”或者null就删掉
-            let req = match category.to_lowercase().as_str() {
-                cat if cat.contains("删除") || cat.contains('-') => {
-                    client.delete(url).send().await
-                }
+            let req = match category.to_lowercase().as_str().trim() {
+                cat if cat == "删除" || cat == "-" => client.delete(url).send().await,
                 cat if cat.starts_with('+') => {
                     let cat = cat.trim_start_matches('+');
                     client
