@@ -57,7 +57,7 @@ async fn parse_message(msg: &str) -> Result<Option<Command>> {
     }
 
     match msg {
-        msg if msg.starts_with("分类") || msg.starts_with("?") => {
+        msg if msg.starts_with("分类") || msg.starts_with('?') => {
             let command = parse_query_category(msg)?;
             Ok(Some(command))
         }
