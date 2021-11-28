@@ -27,6 +27,7 @@ pub enum Command {
     Add { id: String, category: String },
     Delete { id: String },
     Change { id: String, category: String },
+    Query { id: String },
     Summary { date: DateTime<Utc> },
     Kpi { date: DateTime<Utc> },
 }
@@ -59,6 +60,22 @@ impl Command {
                     .await?;
                 errorcheck!(response);
                 Ok(format!("修改 id {} 为 {} 成功", id, category))
+            }
+            Command::Query { id } => {
+                let response = client
+                    .get(format!("{}/items/{}/category", base_url, id))
+                    .send()
+                    .await?;
+                errorcheck!(response);
+                #[derive(Debug, Deserialize)]
+                struct R {
+                    category: Option<String>,
+                }
+                let ret: R = response.json().await?;
+                Ok(match ret.category {
+                    Some(cat) => format!("id {} 当前分类为 【{}】", id, cat),
+                    None => format!("id {} 当前尚未分类", id),
+                })
             }
             Command::Summary { date } => {
                 let t = date.to_rfc3339_opts(chrono::SecondsFormat::Secs, true);

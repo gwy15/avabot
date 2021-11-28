@@ -31,7 +31,7 @@ async fn on_message(msg: GroupMessage, config: Data<crate::Config>, bot: Bot) ->
         return Ok(());
     }
 
-    match parse_message(msg.as_message().to_string().as_str()).await {
+    match parse_message(msg.as_message().to_string().as_str().trim()).await {
         Ok(Some(cmd)) => {
             debug!("消息 {:?} 匹配成功: {:?}", msg, cmd);
             let reply = cmd.execute(&config.asoul_weekly.url).await?;
@@ -51,7 +51,16 @@ async fn on_message(msg: GroupMessage, config: Data<crate::Config>, bot: Bot) ->
 }
 
 async fn parse_message(msg: &str) -> Result<Option<Command>> {
-    match msg.trim() {
+    // 查询分类
+    if let Ok(cmd) = parse_query_category(msg) {
+        return Ok(Some(cmd));
+    }
+
+    match msg {
+        msg if msg.starts_with("分类") || msg.starts_with("?") => {
+            let command = parse_query_category(msg)?;
+            Ok(Some(command))
+        }
         // 归档
         msg if msg.ends_with("归档") => {
             let date = match msg {
@@ -79,6 +88,25 @@ async fn parse_message(msg: &str) -> Result<Option<Command>> {
         }
         // 缩写
         msg => parse_shortcut(msg).await,
+    }
+}
+
+fn parse_query_category(msg: &str) -> Result<Command> {
+    lazy_static::lazy_static! {
+        static ref PATTERN: Regex = Regex::new(r"^(分类|\?|？)\s*(?P<id>\w+)$").unwrap();
+    }
+    match PATTERN.captures(msg) {
+        Some(cap) => {
+            let id = cap
+                .name("id")
+                .ok_or_else(|| anyhow!("获取分类缺少 ID"))?
+                .as_str()
+                .to_string();
+            Ok(Command::Query { id })
+        }
+        None => {
+            bail!("格式错误，格式需要是：\n分类 BVxxxxxxx")
+        }
     }
 }
 
@@ -241,6 +269,35 @@ async fn test_change_category() -> Result<()> {
         })
     );
 
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_query_category() -> Result<()> {
+    assert_eq!(
+        parse_message("分类  BV1AR4y147gy").await?,
+        Some(Command::Query {
+            id: "BV1AR4y147gy".to_string(),
+        })
+    );
+    assert_eq!(
+        parse_message("分类  587803185410047312").await?,
+        Some(Command::Query {
+            id: "587803185410047312".to_string(),
+        })
+    );
+    assert_eq!(
+        parse_message("分类587803185410047312").await?,
+        Some(Command::Query {
+            id: "587803185410047312".to_string(),
+        })
+    );
+    assert_eq!(
+        parse_message("?587803185410047312").await?,
+        Some(Command::Query {
+            id: "587803185410047312".to_string(),
+        })
+    );
     Ok(())
 }
 
