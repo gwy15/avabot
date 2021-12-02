@@ -93,7 +93,7 @@ async fn parse_message(msg: &str) -> Result<Option<Command>> {
 
 fn parse_query_category(msg: &str) -> Result<Command> {
     lazy_static::lazy_static! {
-        static ref PATTERN: Regex = Regex::new(r"^(分类|\?|？)\s*(?P<id>\w+)$").unwrap();
+        static ref PATTERN: Regex = Regex::new(r"^(分类|\?|？)\s+(?P<id>\w+)$").unwrap();
     }
     match PATTERN.captures(msg) {
         Some(cap) => {
@@ -175,143 +175,149 @@ async fn parse_shortcut(msg: &str) -> Result<Option<Command>> {
     Ok(Some(cmd))
 }
 
-#[tokio::test]
-async fn test_shortcut() -> Result<()> {
-    assert_eq!(
-        parse_message("https://b23.tv/oNcAbk +").await?,
-        Some(Command::Add {
-            id: "581071094762952016".to_string(),
-            category: "动态".to_string()
-        })
-    );
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    assert_eq!(
-        parse_message("https://b23.tv/oNcAbk [@人] +").await?,
-        Some(Command::Add {
-            id: "581071094762952016".to_string(),
-            category: "动态".to_string()
-        })
-    );
+    #[tokio::test]
+    async fn test_shortcut() -> Result<()> {
+        assert_eq!(
+            parse_message("https://b23.tv/oNcAbk +").await?,
+            Some(Command::Add {
+                id: "581071094762952016".to_string(),
+                category: "动态".to_string()
+            })
+        );
 
-    assert_eq!(
-        parse_message("[@人] https://b23.tv/oNcAbk +").await?,
-        Some(Command::Add {
-            id: "581071094762952016".to_string(),
-            category: "动态".to_string()
-        })
-    );
+        assert_eq!(
+            parse_message("https://b23.tv/oNcAbk [@人] +").await?,
+            Some(Command::Add {
+                id: "581071094762952016".to_string(),
+                category: "动态".to_string()
+            })
+        );
 
-    assert_eq!(
-        parse_message("https://b23.tv/oNcAbk   -").await?,
-        Some(Command::Delete {
-            id: "581071094762952016".to_string(),
-        })
-    );
-    assert_eq!(
-        parse_message("https://t.bilibili.com/548810564605393067  +").await?,
-        Some(Command::Add {
-            id: "548810564605393067".to_string(),
-            category: "动态".to_string()
-        })
-    );
-    assert_eq!(parse_message("https://example.com/123  +").await?, None);
+        assert_eq!(
+            parse_message("[@人] https://b23.tv/oNcAbk +").await?,
+            Some(Command::Add {
+                id: "581071094762952016".to_string(),
+                category: "动态".to_string()
+            })
+        );
 
-    assert!(parse_message("https://b23.tv/bjPZgml  +").await.is_err());
+        assert_eq!(
+            parse_message("https://b23.tv/oNcAbk   -").await?,
+            Some(Command::Delete {
+                id: "581071094762952016".to_string(),
+            })
+        );
+        assert_eq!(
+            parse_message("https://t.bilibili.com/548810564605393067  +").await?,
+            Some(Command::Add {
+                id: "548810564605393067".to_string(),
+                category: "动态".to_string()
+            })
+        );
+        assert_eq!(parse_message("https://example.com/123  +").await?, None);
 
-    Ok(())
-}
+        assert!(parse_message("https://b23.tv/bjPZgml  +").await.is_err());
 
-#[tokio::test]
-async fn test_change_category() -> Result<()> {
-    assert_eq!(
-        parse_message("修改分类  BV1AR4y147gy  其他").await?,
-        Some(Command::Change {
-            id: "BV1AR4y147gy".to_string(),
-            category: "其他".to_string()
-        })
-    );
+        Ok(())
+    }
 
-    assert_eq!(
-        parse_message("修改分类  BV1AR4y147gy  +其他").await?,
-        Some(Command::Add {
-            id: "BV1AR4y147gy".to_string(),
-            category: "其他".to_string()
-        })
-    );
+    #[tokio::test]
+    async fn test_change_category() -> Result<()> {
+        assert_eq!(
+            parse_message("修改分类  BV1AR4y147gy  其他").await?,
+            Some(Command::Change {
+                id: "BV1AR4y147gy".to_string(),
+                category: "其他".to_string()
+            })
+        );
 
-    assert_eq!(
-        parse_message("修改分类  BV1AR4y147gy -").await?,
-        Some(Command::Delete {
-            id: "BV1AR4y147gy".to_string(),
-        })
-    );
+        assert_eq!(
+            parse_message("修改分类  BV1AR4y147gy  +其他").await?,
+            Some(Command::Add {
+                id: "BV1AR4y147gy".to_string(),
+                category: "其他".to_string()
+            })
+        );
 
-    assert_eq!(
-        parse_message("修改分类  BV1AR4y147gy 删除").await?,
-        Some(Command::Delete {
-            id: "BV1AR4y147gy".to_string(),
-        })
-    );
+        assert_eq!(
+            parse_message("修改分类  BV1AR4y147gy -").await?,
+            Some(Command::Delete {
+                id: "BV1AR4y147gy".to_string(),
+            })
+        );
 
-    assert_eq!(
-        parse_message("修改分类  BV1AR4y147gy  +A-SOUL").await?,
-        Some(Command::Add {
-            id: "BV1AR4y147gy".to_string(),
-            category: "A-SOUL".to_string()
-        })
-    );
+        assert_eq!(
+            parse_message("修改分类  BV1AR4y147gy 删除").await?,
+            Some(Command::Delete {
+                id: "BV1AR4y147gy".to_string(),
+            })
+        );
 
-    assert_eq!(
-        parse_message("修改分类  BV1AR4y147gy  A-SOUL").await?,
-        Some(Command::Change {
-            id: "BV1AR4y147gy".to_string(),
-            category: "A-SOUL".to_string()
-        })
-    );
+        assert_eq!(
+            parse_message("修改分类  BV1AR4y147gy  +A-SOUL").await?,
+            Some(Command::Add {
+                id: "BV1AR4y147gy".to_string(),
+                category: "A-SOUL".to_string()
+            })
+        );
 
-    Ok(())
-}
+        assert_eq!(
+            parse_message("修改分类  BV1AR4y147gy  A-SOUL").await?,
+            Some(Command::Change {
+                id: "BV1AR4y147gy".to_string(),
+                category: "A-SOUL".to_string()
+            })
+        );
 
-#[tokio::test]
-async fn test_query_category() -> Result<()> {
-    assert_eq!(
-        parse_message("分类  BV1AR4y147gy").await?,
-        Some(Command::Query {
-            id: "BV1AR4y147gy".to_string(),
-        })
-    );
-    assert_eq!(
-        parse_message("分类  587803185410047312").await?,
-        Some(Command::Query {
-            id: "587803185410047312".to_string(),
-        })
-    );
-    assert_eq!(
-        parse_message("分类587803185410047312").await?,
-        Some(Command::Query {
-            id: "587803185410047312".to_string(),
-        })
-    );
-    assert_eq!(
-        parse_message("?587803185410047312").await?,
-        Some(Command::Query {
-            id: "587803185410047312".to_string(),
-        })
-    );
-    Ok(())
-}
+        Ok(())
+    }
 
-#[tokio::test]
-async fn test_other_command() -> Result<()> {
-    assert!(matches!(
-        parse_message("kpi").await?,
-        Some(Command::Kpi { .. })
-    ));
+    #[tokio::test]
+    async fn test_query_category() -> Result<()> {
+        assert_eq!(
+            parse_message("分类  BV1AR4y147gy").await?,
+            Some(Command::Query {
+                id: "BV1AR4y147gy".to_string(),
+            })
+        );
+        assert_eq!(
+            parse_message("分类  587803185410047312").await?,
+            Some(Command::Query {
+                id: "587803185410047312".to_string(),
+            })
+        );
+        assert_eq!(
+            parse_message("分类 587803185410047312").await?,
+            Some(Command::Query {
+                id: "587803185410047312".to_string(),
+            })
+        );
+        assert_eq!(
+            parse_message("? 587803185410047312").await?,
+            Some(Command::Query {
+                id: "587803185410047312".to_string(),
+            })
+        );
+        assert_eq!(parse_message("？啥").await?, None);
+        Ok(())
+    }
 
-    assert!(matches!(
-        parse_message("归档").await?,
-        Some(Command::Summary { .. })
-    ));
+    #[tokio::test]
+    async fn test_other_command() -> Result<()> {
+        assert!(matches!(
+            parse_message("kpi").await?,
+            Some(Command::Kpi { .. })
+        ));
 
-    Ok(())
+        assert!(matches!(
+            parse_message("归档").await?,
+            Some(Command::Summary { .. })
+        ));
+
+        Ok(())
+    }
 }
