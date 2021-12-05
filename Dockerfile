@@ -12,7 +12,7 @@ RUN cargo b --release --no-default-features --features rustls \
 # 
 FROM debian:buster-slim
 WORKDIR /code
-COPY --from=builder log4rs.yml .
+COPY log4rs.yml .
 COPY --from=builder /code/target/release/avabot .
 ENTRYPOINT [ "./avabot" ]
 CMD []
