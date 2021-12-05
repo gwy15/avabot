@@ -58,6 +58,7 @@ struct Response {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(unused)]
 struct ResponseData {
     #[serde(rename = "rate")]
     similarity: f64,
@@ -85,6 +86,7 @@ struct Reply {
     author: String,
 
     #[serde(rename = "ctime", with = "chrono::serde::ts_seconds")]
+    #[allow(unused)]
     create_time: DateTime<Utc>,
 
     // dynamic_id: i64,

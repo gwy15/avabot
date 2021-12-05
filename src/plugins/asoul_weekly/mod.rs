@@ -7,12 +7,14 @@ use std::collections::HashSet;
 use crate::prelude::*;
 
 mod command;
+mod daily;
 mod utils;
 
 use command::Command;
 
 pub fn init(bot: Bot) {
-    bot.handler(on_message);
+    bot.handler(on_message)
+        .command("生成日报", daily::generate_daily);
 }
 
 #[derive(Debug, Clone, Deserialize)]
