@@ -39,6 +39,7 @@ pub async fn generate_daily(msg: GroupMessage, bot: Bot, config: Data<Config>) -
         return Ok(());
     }
 
+    msg.reply("开始生成日报", &bot).await?;
     match main().await {
         Ok(aid) => {
             msg.reply(format!("已生成今日日报，aid={}", aid), &bot)
