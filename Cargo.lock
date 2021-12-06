@@ -215,7 +215,7 @@ dependencies = [
 [[package]]
 name = "bilibili"
 version = "0.1.0"
-source = "git+https://github.com/gwy15/asoul-weekly#469ab3ab51cc094b945e9286097d3a7344dc05e9"
+source = "git+https://github.com/gwy15/asoul-weekly#7f94a4465b59faea8d7ededa6a234776bdd0ae34"
 dependencies = [
  "biliapi",
  "chrono",
@@ -764,7 +764,7 @@ dependencies = [
 [[package]]
 name = "gen-article"
 version = "0.1.15"
-source = "git+https://github.com/gwy15/asoul-weekly#469ab3ab51cc094b945e9286097d3a7344dc05e9"
+source = "git+https://github.com/gwy15/asoul-weekly#7f94a4465b59faea8d7ededa6a234776bdd0ae34"
 dependencies = [
  "anyhow",
  "biliapi",
