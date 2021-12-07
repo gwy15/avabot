@@ -29,6 +29,7 @@ async fn run() -> Result<()> {
     plugins::bilibili_cover::init(bot.clone());
     plugins::asoul_weekly::init(bot.clone());
     plugins::schedule::init(bot.clone());
+    plugins::shab::init(bot.clone());
 
     con.run().await?;
     Ok(())
