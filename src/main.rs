@@ -1,22 +1,10 @@
-#[macro_use]
-extern crate log;
+use log::*;
 
-mod config;
-mod plugins;
-pub mod prelude {
-    pub use anyhow::*;
-    pub use miraie::prelude::*;
-    pub use serde::{Deserialize, Serialize};
-    pub use std::time::Duration;
-    pub use tokio::time::sleep;
-}
-
-pub use config::Config;
-
-use prelude::*;
+use avabot::prelude::*;
+use avabot::{plugins, Config};
 
 async fn run() -> Result<()> {
-    let config = config::Config::new()?;
+    let config = Config::new()?;
 
     let (mut bot, con) = miraie::Bot::new(&config.addr, &config.verify_key, config.qq).await?;
     info!("连接已建立。");
@@ -30,6 +18,7 @@ async fn run() -> Result<()> {
     plugins::asoul_weekly::init(bot.clone());
     plugins::schedule::init(bot.clone());
     plugins::shab::init(bot.clone());
+    plugins::fraud::init(bot.clone());
 
     con.run().await?;
     Ok(())

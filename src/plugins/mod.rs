@@ -5,3 +5,4 @@ pub mod core;
 pub mod keyword_reply;
 pub mod schedule;
 pub mod shab;
+pub mod fraud;
